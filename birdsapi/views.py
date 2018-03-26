@@ -1,4 +1,6 @@
 import os
+import shutil
+
 from django.shortcuts import render
 
 # Create your views here.
@@ -34,6 +36,8 @@ def check_duration(fname):
 def processing(folder):
     result_folders = []
     files = os.listdir(os.getcwd())
+    result_folder =""
+    fname = ""
     for f in files:
         if ('.wav' in f.lower()):
             # print int(check_duration(f))
@@ -52,7 +56,6 @@ def processing(folder):
                 start += 1000
                 end = (start + step)
                 count += 1
-                result_folder = ""
                 result_folder = os.getcwd() + "/Result_Audio_" + fname
                 if not os.path.exists(result_folder):
                     os.makedirs("Result_Audio_" + fname)
@@ -86,6 +89,7 @@ class FileView(APIView):
             from1 = folder+"/"+fname
             to1 = res_folder+"/"+fname
             os.rename(from1,to1)
+            shutil.rmtree(res_folder)
             return Response({'data':file_serializer.data,'bird':result}, status=status.HTTP_201_CREATED)
         else:
             return Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
