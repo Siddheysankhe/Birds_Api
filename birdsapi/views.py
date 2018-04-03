@@ -15,6 +15,8 @@ from pydub import AudioSegment
 import myaudioAnalysis
 import operator
 from .models import Bird_Info
+from collections import Counter
+from math import ceil
 
 
 
@@ -66,13 +68,22 @@ def processing(folder):
             print result_folder
             #result_folders.append(result_folder)
         #os.chdir(og_folder)
-    return result_folder,fname
+    return result_folder,fname,no_samples
 
-def check_bird(folder):
+def check_bird(folder,no_samples):
+    avg_bird_dict=Counter({})
     bird = myaudioAnalysis.classifyFolderWrapper(folder,"svm_rbf","svm_new_dataset")
     print bird
     result = max(bird.iteritems(), key=operator.itemgetter(1))[0]
-    return result
+    for files in os.listdir(folder):
+        dicts,winner = myaudioAnalysis.classifyFileWrapper(folder+"/"+files, "svm_rbf", "svm_new_dataset")
+        dicts = Counter(dicts)
+        avg_bird_dict+=dicts
+    print avg_bird_dict
+    for i in avg_bird_dict:
+        avg_bird_dict[i] = (float)(avg_bird_dict[i])/no_samples
+        avg_bird_dict[i] = ceil(avg_bird_dict[i]*100)/100.0
+    return result,avg_bird_dict
 
 
 
@@ -93,8 +104,8 @@ class FileView(APIView):
             print command
             os.system(command.decode('unicode_escape').encode('ascii', 'ignore').replace("\0", ""))
             os.remove(f)
-            res_folder,fname= processing(folder)
-            result = check_bird(res_folder)
+            res_folder,fname,no_samples= processing(folder)
+            result,avg_prob_dict= check_bird(res_folder,no_samples)
             fname = fname+".wav"
             from1 = folder+"/"+fname
             to1 = res_folder+"/"+fname
@@ -102,9 +113,11 @@ class FileView(APIView):
             print to1
             os.rename(from1,to1)
             shutil.rmtree(res_folder)
+            print avg_prob_dict
             info=Bird_Info.objects.get(common_name=result)
             #info.objects.filter(common_name=result)
-            print info.common_name
-            return Response({'data':file_serializer.data,'bird':result,'common_name':info.common_name,'scientfic_name':info.scientific_name,'image':info.image,'audio':info.audio,'description':info.description,'habitat':info.habitat,'location':info.location}, status=status.HTTP_201_CREATED)
+            #print info.common_name
+            #return Response({'data': file_serializer.data, 'bird': result, 'common_name': info.common_name,'scientfic_name': info.scientific_name, 'image': info.image, 'audio': info.audio,'description': info.description, 'habitat': info.habitat, 'location': info.location},status=status.HTTP_201_CREATED)
+            return Response({'data':file_serializer.data,'bird':result,'probabilities':avg_prob_dict}, status=status.HTTP_201_CREATED)
         else:
             return Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)

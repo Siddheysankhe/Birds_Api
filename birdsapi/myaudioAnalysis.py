@@ -11,6 +11,8 @@ import audioVisualization as aV
 import audioBasicIO
 import scipy.io.wavfile as wavfile
 import matplotlib.patches
+from math import ceil
+
 
 
 def dirMp3toWavWrapper(directory, samplerate, channels):
@@ -102,9 +104,13 @@ def classifyFileWrapper(inputFile, modelType, modelName):
     [Result, P, classNames] = aT.fileClassification(inputFile, modelName,
                                                     modelType)
     print "{0:s}\t{1:s}".format("Class", "Probability")
+    my_dict = {}
     for i, c in enumerate(classNames):
         print "{0:s}\t{1:.2f}".format(c, P[i])
+        my_dict[c]=ceil(P[i]*100)/100.0
     print "Winner class: " + classNames[int(Result)]
+    Winner_class = classNames[int(Result)]
+    return my_dict,Winner_class
 
 
 def regressionFileWrapper(inputFile, modelType, modelName):
