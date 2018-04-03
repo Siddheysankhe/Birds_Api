@@ -14,6 +14,7 @@ import re
 from pydub import AudioSegment
 import myaudioAnalysis
 import operator
+from .models import Bird_Info
 
 
 
@@ -101,6 +102,9 @@ class FileView(APIView):
             print to1
             os.rename(from1,to1)
             shutil.rmtree(res_folder)
-            return Response({'data':file_serializer.data,'bird':result}, status=status.HTTP_201_CREATED)
+            info=Bird_Info.objects.get(common_name=result)
+            #info.objects.filter(common_name=result)
+            print info.common_name
+            return Response({'data':file_serializer.data,'bird':result,'common_name':info.common_name,'scientfic_name':info.scientific_name,'image':info.image,'audio':info.audio,'description':info.description,'habitat':info.habitat,'location':info.location}, status=status.HTTP_201_CREATED)
         else:
             return Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
