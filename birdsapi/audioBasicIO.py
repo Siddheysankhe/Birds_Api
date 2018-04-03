@@ -59,7 +59,9 @@ def convertFsDirWavToWav(dirName, Fs, nC):
     os.makedirs(newDir) 
 
     for f in filesToProcess:    
-        _, wavFileName = ntpath.split(f)    
+        _, wavFileName = ntpath.split(f)
+        print f
+        print wavFileName    
         command = "avconv -i \"" + f + "\" -ar " +str(Fs) + " -ac " + str(nC) + " \"" + newDir + os.sep + wavFileName + "\"";
         print command
         os.system(command)

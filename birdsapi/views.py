@@ -62,6 +62,7 @@ def processing(folder):
                 new_song.export("Result_Audio_" + fname + "/" + fname + "_cut_" + str(count) + ".wav", format="wav")
             # print count
             print "Processing Done!!!!!!"
+            print result_folder
             #result_folders.append(result_folder)
         #os.chdir(og_folder)
     return result_folder,fname
@@ -81,13 +82,23 @@ class FileView(APIView):
         file_serializer = FileSerializer(data=request.data)
         if file_serializer.is_valid():
             file_serializer.save()
-            folder = og_folder+"/birdsapi"
+            folder = og_folder + "/birdsapi"
             os.chdir(folder)
+            fname1 = file_serializer.data['file']
+            wavFileName = (fname1.split('/')[2]).split('.')[0]
+            f = wavFileName+".wav"
+            f1 = wavFileName+"_resampled.wav"
+            command = "avconv -i \"" + f + "\" -ar " +str(16000) + " -ac " + str(1) + " \"" + f1 + "\"";
+            print command
+            os.system(command.decode('unicode_escape').encode('ascii', 'ignore').replace("\0", ""))
+            os.remove(f)
             res_folder,fname= processing(folder)
             result = check_bird(res_folder)
             fname = fname+".wav"
             from1 = folder+"/"+fname
             to1 = res_folder+"/"+fname
+            print from1
+            print to1
             os.rename(from1,to1)
             shutil.rmtree(res_folder)
             return Response({'data':file_serializer.data,'bird':result}, status=status.HTTP_201_CREATED)
