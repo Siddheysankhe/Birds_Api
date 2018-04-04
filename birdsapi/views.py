@@ -116,8 +116,7 @@ class FileView(APIView):
             print avg_prob_dict
             info=Bird_Info.objects.get(common_name=result)
             #info.objects.filter(common_name=result)
-            #print info.common_name
-            #return Response({'data': file_serializer.data, 'bird': result, 'common_name': info.common_name,'scientfic_name': info.scientific_name, 'image': info.image, 'audio': info.audio,'description': info.description, 'habitat': info.habitat, 'location': info.location},status=status.HTTP_201_CREATED)
-            return Response({'data':file_serializer.data,'bird':result,'probabilities':avg_prob_dict}, status=status.HTTP_201_CREATED)
+            return Response({'data': file_serializer.data, 'bird': result, 'common_name': info.common_name,'scientific_name': info.scientific_name, 'image': str(info.image), 'audio': str(info.audio),'description': info.description, 'habitat': info.habitat, 'location': info.location,'probabilities':avg_prob_dict},status=status.HTTP_201_CREATED)
+            #return Response({'data':file_serializer.data,'bird':result,'probabilities':avg_prob_dict}, status=status.HTTP_201_CREATED)
         else:
             return Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
